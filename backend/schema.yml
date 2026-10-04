@@ -1,0 +1,4521 @@
+openapi: 3.0.3
+info:
+  title: BloodConnect API
+  version: 1.0.0
+  description: REST API for blood-bank discovery, blood requests, donations and camp
+    coordination.
+paths:
+  /api/v1/auth/change-password/:
+    post:
+      operationId: v1_auth_change_password_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePassword'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChangePassword'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChangePassword'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+  /api/v1/auth/login/:
+    post:
+      operationId: v1_auth_login_create
+      description: |-
+        Takes a set of user credentials and returns an access and refresh JSON web
+        token pair to prove the authentication of those credentials.
+      summary: Log in with email and password
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Login'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Login'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Login'
+        required: true
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+          description: ''
+  /api/v1/auth/logout/:
+    post:
+      operationId: v1_auth_logout_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Logout'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Logout'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Logout'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+  /api/v1/auth/me/:
+    get:
+      operationId: v1_auth_me_retrieve
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    put:
+      operationId: v1_auth_me_update
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    patch:
+      operationId: v1_auth_me_partial_update
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/v1/auth/register/:
+    post:
+      operationId: v1_auth_register_create
+      summary: Register a new user
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Register'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Register'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Register'
+        required: true
+      security:
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegistrationResponse'
+          description: ''
+  /api/v1/auth/token/refresh/:
+    post:
+      operationId: v1_auth_token_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/v1/blood-banks/:
+    get:
+      operationId: v1_blood_banks_list
+      parameters:
+      - in: query
+        name: apheresis_available
+        schema:
+          type: boolean
+      - in: query
+        name: category
+        schema:
+          type: string
+          enum:
+          - CHARITY
+          - GOVERNMENT
+          - OTHER
+          - PRIVATE
+        description: |-
+          * `GOVERNMENT` - Government
+          * `PRIVATE` - Private
+          * `CHARITY` - Charity
+          * `OTHER` - Other
+      - in: query
+        name: city
+        schema:
+          type: string
+      - in: query
+        name: component_available
+        schema:
+          type: boolean
+      - in: query
+        name: district
+        schema:
+          type: string
+      - in: query
+        name: has_coordinates
+        schema:
+          type: boolean
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - in: query
+        name: pincode
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: state
+        schema:
+          type: string
+      - in: query
+        name: verified
+        schema:
+          type: boolean
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBloodBankListList'
+          description: ''
+    post:
+      operationId: v1_blood_banks_create
+      summary: Register a blood bank
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BloodBankCreateUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BloodBankCreateUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BloodBankCreateUpdate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BloodBankDetail'
+          description: ''
+  /api/v1/blood-banks/{slug}/:
+    get:
+      operationId: v1_blood_banks_retrieve
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BloodBankDetail'
+          description: ''
+    put:
+      operationId: v1_blood_banks_update
+      summary: Update a blood bank
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BloodBankCreateUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BloodBankCreateUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BloodBankCreateUpdate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BloodBankDetail'
+          description: ''
+    patch:
+      operationId: v1_blood_banks_partial_update
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedBloodBankCreateUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedBloodBankCreateUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedBloodBankCreateUpdate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BloodBankCreateUpdate'
+          description: ''
+    delete:
+      operationId: v1_blood_banks_destroy
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/blood-banks/{slug}/verify/:
+    post:
+      operationId: v1_blood_banks_verify_create
+      summary: Approve or reject a blood bank
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BloodBankVerificationDecision'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BloodBankVerificationDecision'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BloodBankVerificationDecision'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BloodBankVerification'
+          description: ''
+  /api/v1/blood-banks/nearby/:
+    get:
+      operationId: v1_blood_banks_nearby_list
+      summary: Find nearby blood banks
+      parameters:
+      - in: query
+        name: apheresis_available
+        schema:
+          type: boolean
+      - in: query
+        name: category
+        schema:
+          enum:
+          - GOVERNMENT
+          - PRIVATE
+          - CHARITY
+          - OTHER
+          type: string
+          minLength: 1
+        description: |-
+          * `GOVERNMENT` - Government
+          * `PRIVATE` - Private
+          * `CHARITY` - Charity
+          * `OTHER` - Other
+      - in: query
+        name: city
+        schema:
+          type: string
+      - in: query
+        name: component_available
+        schema:
+          type: boolean
+      - in: query
+        name: district
+        schema:
+          type: string
+      - in: query
+        name: has_coordinates
+        schema:
+          type: boolean
+      - in: query
+        name: latitude
+        schema:
+          type: number
+          format: double
+          maximum: 90
+          minimum: -90
+        required: true
+      - in: query
+        name: longitude
+        schema:
+          type: number
+          format: double
+          maximum: 180
+          minimum: -180
+        required: true
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - in: query
+        name: pincode
+        schema:
+          type: string
+      - in: query
+        name: radius_km
+        schema:
+          type: number
+          format: double
+          maximum: 100
+          minimum: 1
+          default: 10.0
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: state
+        schema:
+          type: string
+      - in: query
+        name: verified
+        schema:
+          type: boolean
+      - in: query
+        name: verified_only
+        schema:
+          type: boolean
+          default: false
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNearbyBloodBankList'
+          description: ''
+  /api/v1/blood-components/:
+    get:
+      operationId: v1_blood_components_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BloodComponent'
+          description: ''
+  /api/v1/blood-components/{id}/:
+    get:
+      operationId: v1_blood_components_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this blood component.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BloodComponent'
+          description: ''
+  /api/v1/blood-groups/:
+    get:
+      operationId: v1_blood_groups_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BloodGroup'
+          description: ''
+  /api/v1/blood-groups/{id}/:
+    get:
+      operationId: v1_blood_groups_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this blood group.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BloodGroup'
+          description: ''
+  /api/v1/blood-requests/:
+    get:
+      operationId: v1_blood_requests_list
+      parameters:
+      - in: query
+        name: assigned_to_my_bank
+        schema:
+          type: boolean
+      - in: query
+        name: blood_bank
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: blood_group
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: component
+        schema:
+          type: string
+          format: uuid
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - in: query
+        name: request_number
+        schema:
+          type: string
+      - in: query
+        name: required_from
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: required_to
+        schema:
+          type: string
+          format: date
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - ACCEPTED
+          - CANCELLED
+          - COMPLETED
+          - EXPIRED
+          - PARTIALLY_FULFILLED
+          - PENDING
+          - REJECTED
+          - UNDER_REVIEW
+        description: |-
+          * `PENDING` - Pending
+          * `UNDER_REVIEW` - Under Review
+          * `ACCEPTED` - Accepted
+          * `PARTIALLY_FULFILLED` - Partially Fulfilled
+          * `REJECTED` - Rejected
+          * `CANCELLED` - Cancelled
+          * `COMPLETED` - Completed
+          * `EXPIRED` - Expired
+      - in: query
+        name: urgency
+        schema:
+          type: string
+          enum:
+          - EMERGENCY
+          - NORMAL
+          - URGENT
+        description: |-
+          * `NORMAL` - Normal
+          * `URGENT` - Urgent
+          * `EMERGENCY` - Emergency
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBloodRequestListList'
+          description: ''
+    post:
+      operationId: v1_blood_requests_create
+      summary: Submit a blood requirement
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BloodRequestCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BloodRequestCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BloodRequestCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BloodRequestDetail'
+          description: ''
+  /api/v1/blood-requests/{id}/:
+    get:
+      operationId: v1_blood_requests_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this blood request.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BloodRequestDetail'
+          description: ''
+  /api/v1/blood-requests/{id}/assign-bank/:
+    post:
+      operationId: v1_blood_requests_assign_bank_create
+      summary: Assign a blood bank to a request
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this blood request.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignBloodBank'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AssignBloodBank'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AssignBloodBank'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BloodRequestDetail'
+          description: ''
+  /api/v1/blood-requests/{id}/assignment-history/:
+    get:
+      operationId: v1_blood_requests_assignment_history_list
+      summary: View blood-bank assignment history
+      parameters:
+      - in: query
+        name: assigned_to_my_bank
+        schema:
+          type: boolean
+      - in: query
+        name: blood_bank
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: blood_group
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: component
+        schema:
+          type: string
+          format: uuid
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this blood request.
+        required: true
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - in: query
+        name: request_number
+        schema:
+          type: string
+      - in: query
+        name: required_from
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: required_to
+        schema:
+          type: string
+          format: date
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - ACCEPTED
+          - CANCELLED
+          - COMPLETED
+          - EXPIRED
+          - PARTIALLY_FULFILLED
+          - PENDING
+          - REJECTED
+          - UNDER_REVIEW
+        description: |-
+          * `PENDING` - Pending
+          * `UNDER_REVIEW` - Under Review
+          * `ACCEPTED` - Accepted
+          * `PARTIALLY_FULFILLED` - Partially Fulfilled
+          * `REJECTED` - Rejected
+          * `CANCELLED` - Cancelled
+          * `COMPLETED` - Completed
+          * `EXPIRED` - Expired
+      - in: query
+        name: urgency
+        schema:
+          type: string
+          enum:
+          - EMERGENCY
+          - NORMAL
+          - URGENT
+        description: |-
+          * `NORMAL` - Normal
+          * `URGENT` - Urgent
+          * `EMERGENCY` - Emergency
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBloodRequestBankAssignmentList'
+          description: ''
+  /api/v1/blood-requests/{id}/cancel/:
+    post:
+      operationId: v1_blood_requests_cancel_create
+      summary: Cancel a blood request
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this blood request.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BloodRequestCancel'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BloodRequestCancel'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BloodRequestCancel'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BloodRequestDetail'
+          description: ''
+  /api/v1/blood-requests/{id}/fulfil-inventory/:
+    post:
+      operationId: v1_blood_requests_fulfil_inventory_create
+      summary: Fulfil a request using reserved inventory
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this blood request.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FulfilInventory'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FulfilInventory'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FulfilInventory'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BloodRequestDetail'
+          description: ''
+  /api/v1/blood-requests/{id}/history/:
+    get:
+      operationId: v1_blood_requests_history_list
+      summary: View blood-request status history
+      parameters:
+      - in: query
+        name: assigned_to_my_bank
+        schema:
+          type: boolean
+      - in: query
+        name: blood_bank
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: blood_group
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: component
+        schema:
+          type: string
+          format: uuid
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this blood request.
+        required: true
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - in: query
+        name: request_number
+        schema:
+          type: string
+      - in: query
+        name: required_from
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: required_to
+        schema:
+          type: string
+          format: date
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - ACCEPTED
+          - CANCELLED
+          - COMPLETED
+          - EXPIRED
+          - PARTIALLY_FULFILLED
+          - PENDING
+          - REJECTED
+          - UNDER_REVIEW
+        description: |-
+          * `PENDING` - Pending
+          * `UNDER_REVIEW` - Under Review
+          * `ACCEPTED` - Accepted
+          * `PARTIALLY_FULFILLED` - Partially Fulfilled
+          * `REJECTED` - Rejected
+          * `CANCELLED` - Cancelled
+          * `COMPLETED` - Completed
+          * `EXPIRED` - Expired
+      - in: query
+        name: urgency
+        schema:
+          type: string
+          enum:
+          - EMERGENCY
+          - NORMAL
+          - URGENT
+        description: |-
+          * `NORMAL` - Normal
+          * `URGENT` - Urgent
+          * `EMERGENCY` - Emergency
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBloodRequestStatusHistoryList'
+          description: ''
+  /api/v1/blood-requests/{id}/release-inventory/:
+    post:
+      operationId: v1_blood_requests_release_inventory_create
+      summary: Release reserved inventory
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this blood request.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReleaseInventory'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReleaseInventory'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReleaseInventory'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BloodRequestReservation'
+          description: ''
+  /api/v1/blood-requests/{id}/reserve-inventory/:
+    post:
+      operationId: v1_blood_requests_reserve_inventory_create
+      summary: Reserve inventory for a blood request
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this blood request.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReserveInventory'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReserveInventory'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReserveInventory'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BloodRequestReservation'
+          description: ''
+  /api/v1/blood-requests/{id}/suggested-banks/:
+    get:
+      operationId: v1_blood_requests_suggested_banks_list
+      summary: Suggest nearby blood banks
+      parameters:
+      - in: query
+        name: assigned_to_my_bank
+        schema:
+          type: boolean
+      - in: query
+        name: blood_bank
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: blood_group
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: component
+        schema:
+          type: string
+          format: uuid
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this blood request.
+        required: true
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          maximum: 50
+          minimum: 1
+          default: 10
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - in: query
+        name: radius_km
+        schema:
+          type: number
+          format: double
+          maximum: 200
+          minimum: 1
+          default: 50.0
+      - in: query
+        name: request_number
+        schema:
+          type: string
+      - in: query
+        name: required_from
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: required_to
+        schema:
+          type: string
+          format: date
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - ACCEPTED
+          - CANCELLED
+          - COMPLETED
+          - EXPIRED
+          - PARTIALLY_FULFILLED
+          - PENDING
+          - REJECTED
+          - UNDER_REVIEW
+        description: |-
+          * `PENDING` - Pending
+          * `UNDER_REVIEW` - Under Review
+          * `ACCEPTED` - Accepted
+          * `PARTIALLY_FULFILLED` - Partially Fulfilled
+          * `REJECTED` - Rejected
+          * `CANCELLED` - Cancelled
+          * `COMPLETED` - Completed
+          * `EXPIRED` - Expired
+      - in: query
+        name: urgency
+        schema:
+          type: string
+          enum:
+          - EMERGENCY
+          - NORMAL
+          - URGENT
+        description: |-
+          * `NORMAL` - Normal
+          * `URGENT` - Urgent
+          * `EMERGENCY` - Emergency
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBloodBankSuggestionList'
+          description: ''
+  /api/v1/blood-requests/{id}/update-status/:
+    post:
+      operationId: v1_blood_requests_update_status_create
+      summary: Update blood-request status
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this blood request.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BloodRequestStatusUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BloodRequestStatusUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BloodRequestStatusUpdate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BloodRequestDetail'
+          description: ''
+  /api/v1/dashboard/me/:
+    get:
+      operationId: v1_dashboard_me_retrieve
+      summary: Get dashboard for current user
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MyDashboard'
+          description: ''
+  /api/v1/dashboard/overview/:
+    get:
+      operationId: v1_dashboard_overview_retrieve
+      summary: Get public BloodConnect dashboard
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicDashboard'
+          description: ''
+  /api/v1/donations/records/:
+    post:
+      operationId: v1_donations_records_create
+      summary: Record a donation for an owned blood bank
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DonationRecordCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DonationRecordCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DonationRecordCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DonationRecord'
+          description: ''
+  /api/v1/donors/eligibility/check/:
+    post:
+      operationId: v1_donors_eligibility_check_create
+      summary: Run a preliminary donor eligibility assessment
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EligibilityCheckInput'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EligibilityCheckInput'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EligibilityCheckInput'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DonorEligibilityAssessment'
+          description: ''
+  /api/v1/donors/history/:
+    get:
+      operationId: v1_donors_history_retrieve
+      summary: List the current donor's donation history
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DonationHistory'
+          description: ''
+  /api/v1/donors/me/:
+    get:
+      operationId: v1_donors_me_retrieve
+      summary: Get the current user's donor profile
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DonorProfile'
+          description: ''
+    post:
+      operationId: v1_donors_me_create
+      summary: Create the current user's donor profile
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DonorProfile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DonorProfile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DonorProfile'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DonorProfile'
+          description: ''
+    patch:
+      operationId: v1_donors_me_partial_update
+      summary: Update the current user's donor profile
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedDonorProfile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedDonorProfile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedDonorProfile'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DonorProfile'
+          description: ''
+  /api/v1/donors/search/:
+    get:
+      operationId: v1_donors_search_retrieve
+      summary: Search eligible, available nearby donors
+      parameters:
+      - in: query
+        name: blood_group
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: latitude
+        schema:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,6})?$
+        required: true
+      - in: query
+        name: longitude
+        schema:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,6})?$
+        required: true
+      - in: query
+        name: radius_km
+        schema:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,4}(?:\.\d{0,2})?$
+          default: '25.00'
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NearbyDonorResults'
+          description: ''
+  /api/v1/health/:
+    get:
+      operationId: v1_health_retrieve
+      description: Check whether the API and database are available.
+      summary: Check API and database health
+      tags:
+      - v1
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheck'
+          description: ''
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheck'
+          description: ''
+  /api/v1/inventory/:
+    get:
+      operationId: v1_inventory_list
+      parameters:
+      - in: query
+        name: available
+        schema:
+          type: boolean
+      - in: query
+        name: blood_bank
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: blood_group
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: city
+        schema:
+          type: string
+      - in: query
+        name: component
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: minimum_units
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: owned
+        schema:
+          type: boolean
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBloodInventoryList'
+          description: ''
+    post:
+      operationId: v1_inventory_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BloodInventory'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BloodInventory'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BloodInventory'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BloodInventory'
+          description: ''
+  /api/v1/inventory/{id}/:
+    get:
+      operationId: v1_inventory_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this blood inventory.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BloodInventory'
+          description: ''
+  /api/v1/inventory/{id}/transactions/:
+    get:
+      operationId: v1_inventory_transactions_list
+      summary: View inventory transaction history
+      parameters:
+      - in: query
+        name: available
+        schema:
+          type: boolean
+      - in: query
+        name: blood_bank
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: blood_group
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: city
+        schema:
+          type: string
+      - in: query
+        name: component
+        schema:
+          type: string
+          format: uuid
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this blood inventory.
+        required: true
+      - in: query
+        name: minimum_units
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: owned
+        schema:
+          type: boolean
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedInventoryTransactionList'
+          description: ''
+  /api/v1/inventory/{id}/update-stock/:
+    post:
+      operationId: v1_inventory_update_stock_create
+      summary: Create an audited inventory transaction
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this blood inventory.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StockUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StockUpdate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BloodInventory'
+          description: ''
+  /api/v1/locations/geocode/:
+    post:
+      operationId: v1_locations_geocode_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddressQuery'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AddressQuery'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AddressQuery'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeocodeResult'
+          description: ''
+  /api/v1/locations/reverse-geocode/:
+    post:
+      operationId: v1_locations_reverse_geocode_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CoordinatesQuery'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CoordinatesQuery'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CoordinatesQuery'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeocodeResult'
+          description: ''
+  /api/v1/notifications/:
+    get:
+      operationId: v1_notifications_list
+      parameters:
+      - in: query
+        name: is_read
+        schema:
+          type: boolean
+      - in: query
+        name: notification_type
+        schema:
+          type: string
+          enum:
+          - INVENTORY_RESERVED
+          - PARTIALLY_FULFILLED
+          - REQUEST_ASSIGNED
+          - REQUEST_CANCELLED
+          - REQUEST_COMPLETED
+          - REQUEST_EXPIRED
+          - REQUEST_REJECTED
+          - REQUEST_SUBMITTED
+          - STATUS_UPDATED
+        description: |-
+          * `REQUEST_SUBMITTED` - Request Submitted
+          * `REQUEST_ASSIGNED` - Request Assigned
+          * `STATUS_UPDATED` - Status Updated
+          * `INVENTORY_RESERVED` - Inventory Reserved
+          * `PARTIALLY_FULFILLED` - Partially Fulfilled
+          * `REQUEST_COMPLETED` - Request Completed
+          * `REQUEST_CANCELLED` - Request Cancelled
+          * `REQUEST_REJECTED` - Request Rejected
+          * `REQUEST_EXPIRED` - Request Expired
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNotificationList'
+          description: ''
+  /api/v1/notifications/{id}/:
+    get:
+      operationId: v1_notifications_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this notification.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/v1/notifications/{id}/mark-read/:
+    post:
+      operationId: v1_notifications_mark_read_create
+      summary: Mark a notification as read
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this notification.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Notification'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/v1/notifications/mark-all-read/:
+    post:
+      operationId: v1_notifications_mark_all_read_create
+      summary: Mark all notifications as read
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Notification'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/notifications/unread-count/:
+    get:
+      operationId: v1_notifications_unread_count_retrieve
+      summary: Get unread notification count
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+components:
+  schemas:
+    AddressQuery:
+      type: object
+      properties:
+        address:
+          type: string
+          maxLength: 250
+      required:
+      - address
+    AssignBloodBank:
+      type: object
+      properties:
+        blood_bank:
+          type: string
+          format: uuid
+        reason:
+          type: string
+          default: ''
+          maxLength: 1000
+      required:
+      - blood_bank
+    BloodBankCreateUpdate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        category:
+          $ref: '#/components/schemas/CategoryEnum'
+        location:
+          $ref: '#/components/schemas/Location'
+        contact_number:
+          type: string
+          maxLength: 100
+        mobile_number:
+          type: string
+          maxLength: 100
+        helpline:
+          type: string
+          maxLength: 100
+        email:
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        website:
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+        service_time:
+          type: string
+          maxLength: 100
+        license_number:
+          type: string
+          maxLength: 150
+        blood_component_available:
+          type: boolean
+          nullable: true
+        apheresis_available:
+          type: boolean
+          nullable: true
+        source:
+          type: string
+          readOnly: true
+        verification_status:
+          type: string
+          readOnly: true
+        is_public:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - location
+      - name
+      - slug
+      - source
+      - updated_at
+      - verification_status
+    BloodBankDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        slug:
+          oneOf:
+          - type: string
+            maxLength: 280
+            pattern: ^[-a-zA-Z0-9_]+$
+          - type: string
+            maxLength: 0
+        category:
+          $ref: '#/components/schemas/CategoryEnum'
+        location:
+          allOf:
+          - $ref: '#/components/schemas/Location'
+          readOnly: true
+        contact_number:
+          type: string
+          maxLength: 100
+        mobile_number:
+          type: string
+          maxLength: 100
+        service_time:
+          type: string
+          maxLength: 100
+        blood_component_available:
+          type: boolean
+          nullable: true
+        apheresis_available:
+          type: boolean
+          nullable: true
+        verification_status:
+          $ref: '#/components/schemas/VerificationStatusEnum'
+        is_verified:
+          type: boolean
+          readOnly: true
+        data_source_label:
+          type: string
+          readOnly: true
+        information_status:
+          type: string
+          readOnly: true
+        information_last_reviewed_at:
+          type: string
+          format: date-time
+          nullable: true
+        owner_email:
+          type: string
+          format: email
+          readOnly: true
+        helpline:
+          type: string
+          maxLength: 100
+        email:
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        website:
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+        license_number:
+          type: string
+          maxLength: 150
+        source:
+          allOf:
+          - $ref: '#/components/schemas/SourceEnum'
+          default: USER_REGISTERED
+        source_record_id:
+          type: string
+          maxLength: 100
+        is_active:
+          type: boolean
+        is_public:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - data_source_label
+      - id
+      - information_status
+      - is_verified
+      - location
+      - name
+      - owner_email
+      - source_record_id
+      - updated_at
+    BloodBankList:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        slug:
+          oneOf:
+          - type: string
+            maxLength: 280
+            pattern: ^[-a-zA-Z0-9_]+$
+          - type: string
+            maxLength: 0
+        category:
+          $ref: '#/components/schemas/CategoryEnum'
+        location:
+          allOf:
+          - $ref: '#/components/schemas/Location'
+          readOnly: true
+        contact_number:
+          type: string
+          maxLength: 100
+        mobile_number:
+          type: string
+          maxLength: 100
+        service_time:
+          type: string
+          maxLength: 100
+        blood_component_available:
+          type: boolean
+          nullable: true
+        apheresis_available:
+          type: boolean
+          nullable: true
+        verification_status:
+          $ref: '#/components/schemas/VerificationStatusEnum'
+        is_verified:
+          type: boolean
+          readOnly: true
+        data_source_label:
+          type: string
+          readOnly: true
+        information_status:
+          type: string
+          readOnly: true
+        information_last_reviewed_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - data_source_label
+      - id
+      - information_status
+      - is_verified
+      - location
+      - name
+    BloodBankManagement:
+      type: object
+      properties:
+        owned_banks:
+          type: integer
+        assigned_requests:
+          type: integer
+        active_assigned_requests:
+          type: integer
+        inventory:
+          $ref: '#/components/schemas/InventorySummary'
+        inventory_by_blood_group:
+          type: array
+          items:
+            $ref: '#/components/schemas/InventoryBloodGroupSummary'
+      required:
+      - active_assigned_requests
+      - assigned_requests
+      - inventory
+      - inventory_by_blood_group
+      - owned_banks
+    BloodBankSuggestion:
+      type: object
+      properties:
+        blood_bank_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        category:
+          type: string
+        verification_status:
+          type: string
+        city:
+          type: string
+          nullable: true
+        district:
+          type: string
+          nullable: true
+        state:
+          type: string
+          nullable: true
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        distance_km:
+          type: number
+          format: double
+        required_units:
+          type: integer
+        available_units:
+          type: integer
+        availability_status:
+          type: string
+        can_fully_fulfil:
+          type: boolean
+        recommendation_reason:
+          type: string
+      required:
+      - availability_status
+      - available_units
+      - blood_bank_id
+      - can_fully_fulfil
+      - category
+      - city
+      - distance_km
+      - district
+      - latitude
+      - longitude
+      - name
+      - recommendation_reason
+      - required_units
+      - slug
+      - state
+      - verification_status
+    BloodBankVerification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        blood_bank:
+          type: string
+          format: uuid
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/BloodBankVerificationStatusEnum'
+          readOnly: true
+        license_number:
+          type: string
+          maxLength: 150
+        license_expiry_date:
+          type: string
+          format: date
+          nullable: true
+        license_document:
+          type: string
+          format: uri
+          nullable: true
+        submitted_by:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        reviewed_by:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        submitted_at:
+          type: string
+          format: date-time
+          readOnly: true
+        reviewed_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        remarks:
+          type: string
+      required:
+      - blood_bank
+      - id
+      - reviewed_at
+      - reviewed_by
+      - status
+      - submitted_at
+      - submitted_by
+    BloodBankVerificationDecision:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/BloodBankVerificationDecisionStatusEnum'
+        remarks:
+          type: string
+          maxLength: 1000
+      required:
+      - status
+    BloodBankVerificationDecisionStatusEnum:
+      enum:
+      - APPROVED
+      - REJECTED
+      type: string
+      description: |-
+        * `APPROVED` - APPROVED
+        * `REJECTED` - REJECTED
+    BloodBankVerificationStatusEnum:
+      enum:
+      - PENDING
+      - APPROVED
+      - REJECTED
+      type: string
+      description: |-
+        * `PENDING` - Pending
+        * `APPROVED` - Approved
+        * `REJECTED` - Rejected
+    BloodComponent:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+      required:
+      - id
+      - name
+    BloodGroup:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+      required:
+      - id
+      - name
+    BloodInventory:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        blood_bank:
+          type: string
+          format: uuid
+        blood_bank_name:
+          type: string
+          readOnly: true
+        blood_group:
+          type: string
+          format: uuid
+        blood_group_name:
+          type: string
+          readOnly: true
+        component:
+          type: string
+          format: uuid
+        component_name:
+          type: string
+          readOnly: true
+        total_units:
+          type: integer
+          readOnly: true
+        reserved_units:
+          type: integer
+          readOnly: true
+        available_units:
+          type: integer
+          readOnly: true
+        last_updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - available_units
+      - blood_bank
+      - blood_bank_name
+      - blood_group
+      - blood_group_name
+      - component
+      - component_name
+      - id
+      - last_updated_at
+      - reserved_units
+      - total_units
+    BloodRequestBankAssignment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        previous_blood_bank:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        previous_blood_bank_name:
+          type: string
+          readOnly: true
+          nullable: true
+        new_blood_bank:
+          type: string
+          format: uuid
+          readOnly: true
+        new_blood_bank_name:
+          type: string
+          readOnly: true
+        assigned_by_email:
+          type: string
+          format: email
+          readOnly: true
+          nullable: true
+        reason:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - assigned_by_email
+      - created_at
+      - id
+      - new_blood_bank
+      - new_blood_bank_name
+      - previous_blood_bank
+      - previous_blood_bank_name
+      - reason
+    BloodRequestCancel:
+      type: object
+      properties:
+        reason:
+          type: string
+          maxLength: 1000
+      required:
+      - reason
+    BloodRequestCreate:
+      type: object
+      properties:
+        blood_bank:
+          type: string
+          format: uuid
+          nullable: true
+          description: Selected blood bank. It may be empty while searching for a
+            suitable bank.
+        blood_group:
+          type: string
+          format: uuid
+        component:
+          type: string
+          format: uuid
+        patient_name:
+          type: string
+          maxLength: 150
+        units_required:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 1
+          format: int64
+        hospital_name:
+          type: string
+          maxLength: 200
+        hospital_address:
+          type: string
+        hospital_latitude:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,6})?$
+          nullable: true
+          description: Latitude of the hospital or request location.
+        hospital_longitude:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,6})?$
+          nullable: true
+          description: Longitude of the hospital or request location.
+        contact_phone:
+          type: string
+          pattern: ^\+?[0-9]{10,15}$
+          maxLength: 16
+        required_date:
+          type: string
+          format: date
+        urgency:
+          $ref: '#/components/schemas/UrgencyEnum'
+        additional_information:
+          type: string
+      required:
+      - blood_group
+      - component
+      - contact_phone
+      - hospital_address
+      - hospital_name
+      - patient_name
+      - required_date
+      - units_required
+    BloodRequestDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        request_number:
+          type: string
+          readOnly: true
+        requester_email:
+          type: string
+          format: email
+          readOnly: true
+        blood_bank:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+          description: Selected blood bank. It may be empty while searching for a
+            suitable bank.
+        blood_bank_name:
+          type: string
+          readOnly: true
+          nullable: true
+        blood_group:
+          type: string
+          format: uuid
+          readOnly: true
+        blood_group_name:
+          type: string
+          readOnly: true
+        component:
+          type: string
+          format: uuid
+          readOnly: true
+        component_name:
+          type: string
+          readOnly: true
+        patient_name:
+          type: string
+          readOnly: true
+        units_required:
+          type: integer
+          readOnly: true
+        units_fulfilled:
+          type: integer
+          readOnly: true
+        remaining_units:
+          type: integer
+          readOnly: true
+        hospital_name:
+          type: string
+          readOnly: true
+        hospital_address:
+          type: string
+          readOnly: true
+        hospital_latitude:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,6})?$
+          readOnly: true
+          nullable: true
+          description: Latitude of the hospital or request location.
+        hospital_longitude:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,6})?$
+          readOnly: true
+          nullable: true
+          description: Longitude of the hospital or request location.
+        contact_phone:
+          type: string
+          readOnly: true
+        required_date:
+          type: string
+          format: date
+          readOnly: true
+        urgency:
+          allOf:
+          - $ref: '#/components/schemas/UrgencyEnum'
+          readOnly: true
+        urgency_display:
+          type: string
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/BloodRequestStatusEnum'
+          readOnly: true
+        status_display:
+          type: string
+          readOnly: true
+        additional_information:
+          type: string
+          readOnly: true
+        blood_bank_response:
+          type: string
+          readOnly: true
+        reviewed_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        expires_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        reservation:
+          allOf:
+          - $ref: '#/components/schemas/BloodRequestReservation'
+          readOnly: true
+        assignment_history:
+          type: array
+          items:
+            $ref: '#/components/schemas/BloodRequestBankAssignment'
+          readOnly: true
+        status_history:
+          type: array
+          items:
+            $ref: '#/components/schemas/BloodRequestStatusHistory'
+          readOnly: true
+      required:
+      - additional_information
+      - assignment_history
+      - blood_bank
+      - blood_bank_name
+      - blood_bank_response
+      - blood_group
+      - blood_group_name
+      - component
+      - component_name
+      - contact_phone
+      - created_at
+      - expires_at
+      - hospital_address
+      - hospital_latitude
+      - hospital_longitude
+      - hospital_name
+      - id
+      - patient_name
+      - remaining_units
+      - request_number
+      - requester_email
+      - required_date
+      - reservation
+      - reviewed_at
+      - status
+      - status_display
+      - status_history
+      - units_fulfilled
+      - units_required
+      - updated_at
+      - urgency
+      - urgency_display
+    BloodRequestList:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        request_number:
+          type: string
+          readOnly: true
+        blood_bank:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+          description: Selected blood bank. It may be empty while searching for a
+            suitable bank.
+        blood_bank_name:
+          type: string
+          readOnly: true
+          nullable: true
+        blood_group:
+          type: string
+          format: uuid
+          readOnly: true
+        blood_group_name:
+          type: string
+          readOnly: true
+        component:
+          type: string
+          format: uuid
+          readOnly: true
+        component_name:
+          type: string
+          readOnly: true
+        units_required:
+          type: integer
+          readOnly: true
+        units_fulfilled:
+          type: integer
+          readOnly: true
+        remaining_units:
+          type: integer
+          readOnly: true
+        hospital_name:
+          type: string
+          readOnly: true
+        required_date:
+          type: string
+          format: date
+          readOnly: true
+        urgency:
+          allOf:
+          - $ref: '#/components/schemas/UrgencyEnum'
+          readOnly: true
+        urgency_display:
+          type: string
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/BloodRequestStatusEnum'
+          readOnly: true
+        status_display:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - blood_bank
+      - blood_bank_name
+      - blood_group
+      - blood_group_name
+      - component
+      - component_name
+      - created_at
+      - hospital_name
+      - id
+      - remaining_units
+      - request_number
+      - required_date
+      - status
+      - status_display
+      - units_fulfilled
+      - units_required
+      - updated_at
+      - urgency
+      - urgency_display
+    BloodRequestReservation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        inventory:
+          type: string
+          format: uuid
+          readOnly: true
+        inventory_blood_bank:
+          type: string
+          readOnly: true
+        blood_group:
+          type: string
+          readOnly: true
+        component:
+          type: string
+          readOnly: true
+        reserved_units:
+          type: integer
+          readOnly: true
+          description: Units currently held for this request.
+        fulfilled_units:
+          type: integer
+          readOnly: true
+          description: Total units already supplied through this reservation.
+        status:
+          allOf:
+          - $ref: '#/components/schemas/BloodRequestReservationStatusEnum'
+          readOnly: true
+        created_by_email:
+          type: string
+          format: email
+          readOnly: true
+        released_by_email:
+          type: string
+          format: email
+          readOnly: true
+          nullable: true
+        release_reason:
+          type: string
+          readOnly: true
+        released_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - blood_group
+      - component
+      - created_at
+      - created_by_email
+      - fulfilled_units
+      - id
+      - inventory
+      - inventory_blood_bank
+      - release_reason
+      - released_at
+      - released_by_email
+      - reserved_units
+      - status
+      - updated_at
+    BloodRequestReservationStatusEnum:
+      enum:
+      - ACTIVE
+      - PARTIALLY_FULFILLED
+      - FULFILLED
+      - RELEASED
+      type: string
+      description: |-
+        * `ACTIVE` - Active
+        * `PARTIALLY_FULFILLED` - Partially Fulfilled
+        * `FULFILLED` - Fulfilled
+        * `RELEASED` - Released
+    BloodRequestStatusEnum:
+      enum:
+      - PENDING
+      - UNDER_REVIEW
+      - ACCEPTED
+      - PARTIALLY_FULFILLED
+      - REJECTED
+      - CANCELLED
+      - COMPLETED
+      - EXPIRED
+      type: string
+      description: |-
+        * `PENDING` - Pending
+        * `UNDER_REVIEW` - Under Review
+        * `ACCEPTED` - Accepted
+        * `PARTIALLY_FULFILLED` - Partially Fulfilled
+        * `REJECTED` - Rejected
+        * `CANCELLED` - Cancelled
+        * `COMPLETED` - Completed
+        * `EXPIRED` - Expired
+    BloodRequestStatusHistory:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        previous_status:
+          allOf:
+          - $ref: '#/components/schemas/BloodRequestStatusEnum'
+          readOnly: true
+        previous_status_display:
+          type: string
+          readOnly: true
+        new_status:
+          allOf:
+          - $ref: '#/components/schemas/BloodRequestStatusEnum'
+          readOnly: true
+        new_status_display:
+          type: string
+          readOnly: true
+        note:
+          type: string
+          readOnly: true
+        changed_by_email:
+          type: string
+          format: email
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - changed_by_email
+      - created_at
+      - id
+      - new_status
+      - new_status_display
+      - note
+      - previous_status
+      - previous_status_display
+    BloodRequestStatusUpdate:
+      type: object
+      properties:
+        new_status:
+          $ref: '#/components/schemas/BloodRequestStatusEnum'
+        units_fulfilled:
+          type: integer
+          minimum: 1
+          nullable: true
+        note:
+          type: string
+          default: ''
+          maxLength: 1000
+      required:
+      - new_status
+    CategoryEnum:
+      enum:
+      - GOVERNMENT
+      - PRIVATE
+      - CHARITY
+      - OTHER
+      type: string
+      description: |-
+        * `GOVERNMENT` - Government
+        * `PRIVATE` - Private
+        * `CHARITY` - Charity
+        * `OTHER` - Other
+    ChangePassword:
+      type: object
+      properties:
+        current_password:
+          type: string
+          writeOnly: true
+        new_password:
+          type: string
+          writeOnly: true
+          minLength: 8
+        new_password_confirm:
+          type: string
+          writeOnly: true
+      required:
+      - current_password
+      - new_password
+      - new_password_confirm
+    CoordinatesQuery:
+      type: object
+      properties:
+        latitude:
+          type: number
+          format: double
+          maximum: 90
+          minimum: -90
+        longitude:
+          type: number
+          format: double
+          maximum: 180
+          minimum: -180
+      required:
+      - latitude
+      - longitude
+    CountPair:
+      type: object
+      properties:
+        total:
+          type: integer
+        completed:
+          type: integer
+        available:
+          type: integer
+        verified:
+          type: integer
+      required:
+      - total
+    DashboardAccount:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+      - email
+    DashboardDonor:
+      type: object
+      properties:
+        has_profile:
+          type: boolean
+        is_available:
+          type: boolean
+        is_eligible:
+          type: boolean
+          nullable: true
+        blood_group:
+          type: string
+          nullable: true
+        donation_count:
+          type: integer
+        last_donation_date:
+          type: string
+          format: date
+          nullable: true
+      required:
+      - blood_group
+      - donation_count
+      - has_profile
+      - is_available
+      - is_eligible
+      - last_donation_date
+    DashboardNotification:
+      type: object
+      properties:
+        unread:
+          type: integer
+      required:
+      - unread
+    DatabaseEnum:
+      enum:
+      - connected
+      - disconnected
+      type: string
+      description: |-
+        * `connected` - connected
+        * `disconnected` - disconnected
+    DonationHistory:
+      type: object
+      properties:
+        count:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/DonationRecord'
+      required:
+      - count
+      - results
+    DonationRecord:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        donor:
+          type: string
+          format: uuid
+          readOnly: true
+        donor_email:
+          type: string
+          format: email
+          readOnly: true
+        blood_bank:
+          type: string
+          format: uuid
+          readOnly: true
+        blood_bank_name:
+          type: string
+          readOnly: true
+        blood_group:
+          type: string
+          format: uuid
+          readOnly: true
+        blood_group_name:
+          type: string
+          readOnly: true
+        donation_date:
+          type: string
+          format: date
+          readOnly: true
+        units_donated:
+          type: integer
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/DonationRecordStatusEnum'
+          readOnly: true
+        notes:
+          type: string
+          readOnly: true
+        recorded_by_email:
+          type: string
+          format: email
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - blood_bank
+      - blood_bank_name
+      - blood_group
+      - blood_group_name
+      - created_at
+      - donation_date
+      - donor
+      - donor_email
+      - id
+      - notes
+      - recorded_by_email
+      - status
+      - units_donated
+      - updated_at
+    DonationRecordCreate:
+      type: object
+      properties:
+        donor:
+          type: string
+          format: uuid
+        blood_bank:
+          type: string
+          format: uuid
+        donation_date:
+          type: string
+          format: date
+        units_donated:
+          type: integer
+          maximum: 10
+          minimum: 1
+          default: 1
+        status:
+          allOf:
+          - $ref: '#/components/schemas/DonationRecordStatusEnum'
+          default: COMPLETED
+        notes:
+          type: string
+          default: ''
+      required:
+      - blood_bank
+      - donation_date
+      - donor
+    DonationRecordStatusEnum:
+      enum:
+      - REGISTERED
+      - COMPLETED
+      - CANCELLED
+      - REJECTED
+      type: string
+      description: |-
+        * `REGISTERED` - Registered
+        * `COMPLETED` - Completed
+        * `CANCELLED` - Cancelled
+        * `REJECTED` - Rejected
+    DonorEligibilityAssessment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        is_eligible:
+          type: boolean
+          readOnly: true
+        age_at_assessment:
+          type: integer
+          readOnly: true
+        weight_at_assessment:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          readOnly: true
+        reasons:
+          readOnly: true
+        assessed_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - age_at_assessment
+      - assessed_at
+      - id
+      - is_eligible
+      - reasons
+      - weight_at_assessment
+    DonorProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+        blood_group:
+          type: string
+          format: uuid
+        blood_group_name:
+          type: string
+          readOnly: true
+        date_of_birth:
+          type: string
+          format: date
+        gender:
+          $ref: '#/components/schemas/GenderEnum'
+        weight_kg:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+        phone:
+          type: string
+          maxLength: 20
+        address:
+          type: string
+        city:
+          type: string
+          maxLength: 100
+        state:
+          type: string
+          maxLength: 100
+        pincode:
+          type: string
+          maxLength: 10
+        latitude:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,6})?$
+          nullable: true
+        longitude:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,6})?$
+          nullable: true
+        last_donation_date:
+          type: string
+          format: date
+          nullable: true
+        is_available:
+          type: boolean
+        medical_declaration_accepted:
+          type: boolean
+        latest_assessment:
+          allOf:
+          - $ref: '#/components/schemas/DonorEligibilityAssessment'
+          nullable: true
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - address
+      - blood_group
+      - blood_group_name
+      - city
+      - created_at
+      - date_of_birth
+      - email
+      - gender
+      - id
+      - latest_assessment
+      - phone
+      - pincode
+      - state
+      - updated_at
+      - weight_kg
+    EligibilityCheckInput:
+      type: object
+      properties:
+        feeling_well:
+          type: boolean
+        has_fever_or_infection:
+          type: boolean
+          default: false
+        taking_antibiotics:
+          type: boolean
+          default: false
+        recent_surgery:
+          type: boolean
+          default: false
+        pregnant_or_breastfeeding:
+          type: boolean
+          default: false
+        recent_tattoo_or_piercing:
+          type: boolean
+          default: false
+      required:
+      - feeling_well
+    FulfilInventory:
+      type: object
+      properties:
+        quantity:
+          type: integer
+          minimum: 1
+        note:
+          type: string
+          maxLength: 1000
+      required:
+      - note
+      - quantity
+    GenderEnum:
+      enum:
+      - MALE
+      - FEMALE
+      - OTHER
+      - PREFER_NOT_TO_SAY
+      type: string
+      description: |-
+        * `MALE` - Male
+        * `FEMALE` - Female
+        * `OTHER` - Other
+        * `PREFER_NOT_TO_SAY` - Prefer not to say
+    GeocodeResult:
+      type: object
+      properties:
+        address:
+          type: string
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+      required:
+      - address
+      - latitude
+      - longitude
+    HealthCheck:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/HealthCheckStatusEnum'
+        service:
+          type: string
+        database:
+          $ref: '#/components/schemas/DatabaseEnum'
+      required:
+      - database
+      - service
+      - status
+    HealthCheckStatusEnum:
+      enum:
+      - healthy
+      - unhealthy
+      type: string
+      description: |-
+        * `healthy` - healthy
+        * `unhealthy` - unhealthy
+    InventoryBloodGroupSummary:
+      type: object
+      properties:
+        total_units:
+          type: integer
+        reserved_units:
+          type: integer
+        available_units:
+          type: integer
+        blood_group:
+          type: string
+      required:
+      - available_units
+      - blood_group
+      - reserved_units
+      - total_units
+    InventorySummary:
+      type: object
+      properties:
+        total_units:
+          type: integer
+        reserved_units:
+          type: integer
+        available_units:
+          type: integer
+      required:
+      - available_units
+      - reserved_units
+      - total_units
+    InventoryTransaction:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        inventory:
+          type: string
+          format: uuid
+          readOnly: true
+        transaction_type:
+          allOf:
+          - $ref: '#/components/schemas/TransactionTypeEnum'
+          readOnly: true
+        transaction_type_display:
+          type: string
+          readOnly: true
+        quantity_change:
+          type: integer
+          readOnly: true
+        quantity_before:
+          type: integer
+          readOnly: true
+        quantity_after:
+          type: integer
+          readOnly: true
+        reason:
+          type: string
+          readOnly: true
+        reference_number:
+          type: string
+          readOnly: true
+        created_by:
+          type: string
+          format: uuid
+          readOnly: true
+        created_by_email:
+          type: string
+          format: email
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - created_by
+      - created_by_email
+      - id
+      - inventory
+      - quantity_after
+      - quantity_before
+      - quantity_change
+      - reason
+      - reference_number
+      - transaction_type
+      - transaction_type_display
+    Location:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        address_line:
+          type: string
+        locality:
+          type: string
+          maxLength: 150
+        city:
+          type: string
+          maxLength: 150
+        district:
+          type: string
+          maxLength: 150
+        state:
+          type: string
+          maxLength: 150
+        pincode:
+          type: string
+          maxLength: 10
+        latitude:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,6})?$
+          nullable: true
+        longitude:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,6})?$
+          nullable: true
+        has_coordinates:
+          type: boolean
+          readOnly: true
+        full_address:
+          type: string
+          readOnly: true
+      required:
+      - full_address
+      - has_coordinates
+      - id
+    Login:
+      type: object
+      properties:
+        email:
+          type: string
+          writeOnly: true
+        password:
+          type: string
+          writeOnly: true
+      required:
+      - email
+      - password
+    LoginResponse:
+      type: object
+      properties:
+        access:
+          type: string
+        refresh:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+      required:
+      - access
+      - refresh
+      - user
+    Logout:
+      type: object
+      properties:
+        refresh:
+          type: string
+      required:
+      - refresh
+    Message:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+      - message
+    MyDashboard:
+      type: object
+      properties:
+        account:
+          $ref: '#/components/schemas/DashboardAccount'
+        notifications:
+          $ref: '#/components/schemas/DashboardNotification'
+        my_requests:
+          $ref: '#/components/schemas/RequestSummary'
+        donor:
+          $ref: '#/components/schemas/DashboardDonor'
+        blood_bank_management:
+          $ref: '#/components/schemas/BloodBankManagement'
+      required:
+      - account
+      - blood_bank_management
+      - donor
+      - my_requests
+      - notifications
+    NearbyBloodBank:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        slug:
+          oneOf:
+          - type: string
+            maxLength: 280
+            pattern: ^[-a-zA-Z0-9_]+$
+          - type: string
+            maxLength: 0
+        category:
+          $ref: '#/components/schemas/CategoryEnum'
+        location:
+          allOf:
+          - $ref: '#/components/schemas/Location'
+          readOnly: true
+        contact_number:
+          type: string
+          maxLength: 100
+        mobile_number:
+          type: string
+          maxLength: 100
+        service_time:
+          type: string
+          maxLength: 100
+        blood_component_available:
+          type: boolean
+          nullable: true
+        apheresis_available:
+          type: boolean
+          nullable: true
+        verification_status:
+          $ref: '#/components/schemas/VerificationStatusEnum'
+        is_verified:
+          type: boolean
+          readOnly: true
+        data_source_label:
+          type: string
+          readOnly: true
+        information_status:
+          type: string
+          readOnly: true
+        information_last_reviewed_at:
+          type: string
+          format: date-time
+          nullable: true
+        distance_km:
+          type: number
+          format: double
+          readOnly: true
+      required:
+      - data_source_label
+      - distance_km
+      - id
+      - information_status
+      - is_verified
+      - location
+      - name
+    NearbyDonorResult:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        phone:
+          type: string
+        blood_group:
+          type: string
+          format: uuid
+        blood_group_name:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        distance_km:
+          type: number
+          format: double
+        last_donation_date:
+          type: string
+          format: date
+          nullable: true
+        eligibility_assessed_at:
+          type: string
+          format: date-time
+      required:
+      - blood_group
+      - blood_group_name
+      - city
+      - distance_km
+      - eligibility_assessed_at
+      - id
+      - last_donation_date
+      - phone
+      - state
+    NearbyDonorResults:
+      type: object
+      properties:
+        count:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/NearbyDonorResult'
+      required:
+      - count
+      - results
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        notification_type:
+          allOf:
+          - $ref: '#/components/schemas/NotificationTypeEnum'
+          readOnly: true
+        notification_type_display:
+          type: string
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        message:
+          type: string
+          readOnly: true
+        blood_request:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        request_number:
+          type: string
+          readOnly: true
+          nullable: true
+        data:
+          readOnly: true
+        is_read:
+          type: boolean
+          readOnly: true
+        read_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - blood_request
+      - created_at
+      - data
+      - id
+      - is_read
+      - message
+      - notification_type
+      - notification_type_display
+      - read_at
+      - request_number
+      - title
+    NotificationTypeEnum:
+      enum:
+      - REQUEST_SUBMITTED
+      - REQUEST_ASSIGNED
+      - STATUS_UPDATED
+      - INVENTORY_RESERVED
+      - PARTIALLY_FULFILLED
+      - REQUEST_COMPLETED
+      - REQUEST_CANCELLED
+      - REQUEST_REJECTED
+      - REQUEST_EXPIRED
+      type: string
+      description: |-
+        * `REQUEST_SUBMITTED` - Request Submitted
+        * `REQUEST_ASSIGNED` - Request Assigned
+        * `STATUS_UPDATED` - Status Updated
+        * `INVENTORY_RESERVED` - Inventory Reserved
+        * `PARTIALLY_FULFILLED` - Partially Fulfilled
+        * `REQUEST_COMPLETED` - Request Completed
+        * `REQUEST_CANCELLED` - Request Cancelled
+        * `REQUEST_REJECTED` - Request Rejected
+        * `REQUEST_EXPIRED` - Request Expired
+    PaginatedBloodBankListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BloodBankList'
+    PaginatedBloodBankSuggestionList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BloodBankSuggestion'
+    PaginatedBloodInventoryList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BloodInventory'
+    PaginatedBloodRequestBankAssignmentList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BloodRequestBankAssignment'
+    PaginatedBloodRequestListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BloodRequestList'
+    PaginatedBloodRequestStatusHistoryList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BloodRequestStatusHistory'
+    PaginatedInventoryTransactionList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/InventoryTransaction'
+    PaginatedNearbyBloodBankList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/NearbyBloodBank'
+    PaginatedNotificationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+    PatchedBloodBankCreateUpdate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        category:
+          $ref: '#/components/schemas/CategoryEnum'
+        location:
+          $ref: '#/components/schemas/Location'
+        contact_number:
+          type: string
+          maxLength: 100
+        mobile_number:
+          type: string
+          maxLength: 100
+        helpline:
+          type: string
+          maxLength: 100
+        email:
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        website:
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+        service_time:
+          type: string
+          maxLength: 100
+        license_number:
+          type: string
+          maxLength: 150
+        blood_component_available:
+          type: boolean
+          nullable: true
+        apheresis_available:
+          type: boolean
+          nullable: true
+        source:
+          type: string
+          readOnly: true
+        verification_status:
+          type: string
+          readOnly: true
+        is_public:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedDonorProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+        blood_group:
+          type: string
+          format: uuid
+        blood_group_name:
+          type: string
+          readOnly: true
+        date_of_birth:
+          type: string
+          format: date
+        gender:
+          $ref: '#/components/schemas/GenderEnum'
+        weight_kg:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+        phone:
+          type: string
+          maxLength: 20
+        address:
+          type: string
+        city:
+          type: string
+          maxLength: 100
+        state:
+          type: string
+          maxLength: 100
+        pincode:
+          type: string
+          maxLength: 10
+        latitude:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,6})?$
+          nullable: true
+        longitude:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,6})?$
+          nullable: true
+        last_donation_date:
+          type: string
+          format: date
+          nullable: true
+        is_available:
+          type: boolean
+        medical_declaration_accepted:
+          type: boolean
+        latest_assessment:
+          allOf:
+          - $ref: '#/components/schemas/DonorEligibilityAssessment'
+          nullable: true
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedUser:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        phone_number:
+          type: string
+          maxLength: 20
+        is_email_verified:
+          type: boolean
+          readOnly: true
+        roles:
+          type: array
+          items:
+            type: string
+          readOnly: true
+        primary_role:
+          type: string
+          nullable: true
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PublicDashboard:
+      type: object
+      properties:
+        blood_banks:
+          $ref: '#/components/schemas/CountPair'
+        donors:
+          $ref: '#/components/schemas/CountPair'
+        requests:
+          $ref: '#/components/schemas/RequestSummary'
+        donations:
+          $ref: '#/components/schemas/CountPair'
+        inventory:
+          $ref: '#/components/schemas/PublicInventory'
+      required:
+      - blood_banks
+      - donations
+      - donors
+      - inventory
+      - requests
+    PublicInventory:
+      type: object
+      properties:
+        summary:
+          $ref: '#/components/schemas/PublicInventorySummary'
+        by_blood_group:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicInventoryBloodGroupSummary'
+      required:
+      - by_blood_group
+      - summary
+    PublicInventoryBloodGroupSummary:
+      type: object
+      properties:
+        total_units:
+          type: integer
+        available_units:
+          type: integer
+        blood_group:
+          type: string
+      required:
+      - available_units
+      - blood_group
+      - total_units
+    PublicInventorySummary:
+      type: object
+      properties:
+        total_units:
+          type: integer
+        available_units:
+          type: integer
+      required:
+      - available_units
+      - total_units
+    Register:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          writeOnly: true
+          minLength: 8
+        password_confirm:
+          type: string
+          writeOnly: true
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        phone_number:
+          type: string
+          maxLength: 20
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+      required:
+      - email
+      - first_name
+      - password
+      - password_confirm
+      - role
+    RegistrationResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+        tokens:
+          $ref: '#/components/schemas/TokenPair'
+      required:
+      - message
+      - tokens
+      - user
+    ReleaseInventory:
+      type: object
+      properties:
+        reason:
+          type: string
+          maxLength: 1000
+      required:
+      - reason
+    RequestSummary:
+      type: object
+      properties:
+        total:
+          type: integer
+        active:
+          type: integer
+        completed:
+          type: integer
+        by_status:
+          type: object
+          additionalProperties:
+            type: integer
+      required:
+      - active
+      - by_status
+      - completed
+      - total
+    ReserveInventory:
+      type: object
+      properties:
+        quantity:
+          type: integer
+          minimum: 1
+      required:
+      - quantity
+    RoleEnum:
+      enum:
+      - SEEKER
+      - DONOR
+      - CAMP_ORGANIZER
+      type: string
+      description: |-
+        * `SEEKER` - SEEKER
+        * `DONOR` - DONOR
+        * `CAMP_ORGANIZER` - CAMP_ORGANIZER
+    SourceEnum:
+      enum:
+      - USER_REGISTERED
+      - DIRECTORY_IMPORT
+      - ADMIN_CREATED
+      type: string
+      description: |-
+        * `USER_REGISTERED` - User Registered
+        * `DIRECTORY_IMPORT` - Directory Import
+        * `ADMIN_CREATED` - Admin Created
+    StockUpdate:
+      type: object
+      properties:
+        transaction_type:
+          $ref: '#/components/schemas/TransactionTypeEnum'
+        quantity:
+          type: integer
+          minimum: 0
+        reason:
+          type: string
+          maxLength: 500
+        reference_number:
+          type: string
+          default: ''
+          maxLength: 100
+      required:
+      - quantity
+      - reason
+      - transaction_type
+    TokenPair:
+      type: object
+      properties:
+        access:
+          type: string
+        refresh:
+          type: string
+      required:
+      - access
+      - refresh
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+      required:
+      - access
+      - refresh
+    TransactionTypeEnum:
+      enum:
+      - DONATION
+      - RECEIVED
+      - ISSUED
+      - EXPIRED
+      - TRANSFER_IN
+      - TRANSFER_OUT
+      - ADJUSTMENT
+      type: string
+      description: |-
+        * `DONATION` - Donation
+        * `RECEIVED` - Received
+        * `ISSUED` - Issued
+        * `EXPIRED` - Expired
+        * `TRANSFER_IN` - Transfer In
+        * `TRANSFER_OUT` - Transfer Out
+        * `ADJUSTMENT` - Adjustment
+    UrgencyEnum:
+      enum:
+      - NORMAL
+      - URGENT
+      - EMERGENCY
+      type: string
+      description: |-
+        * `NORMAL` - Normal
+        * `URGENT` - Urgent
+        * `EMERGENCY` - Emergency
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        phone_number:
+          type: string
+          maxLength: 20
+        is_email_verified:
+          type: boolean
+          readOnly: true
+        roles:
+          type: array
+          items:
+            type: string
+          readOnly: true
+        primary_role:
+          type: string
+          nullable: true
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - email
+      - id
+      - is_email_verified
+      - primary_role
+      - roles
+      - updated_at
+    VerificationStatusEnum:
+      enum:
+      - DIRECTORY_IMPORTED
+      - PENDING
+      - VERIFIED
+      - REJECTED
+      - SUSPENDED
+      type: string
+      description: |-
+        * `DIRECTORY_IMPORTED` - Directory Imported
+        * `PENDING` - Pending Verification
+        * `VERIFIED` - Verified
+        * `REJECTED` - Rejected
+        * `SUSPENDED` - Suspended
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
